@@ -405,21 +405,7 @@
         document.getElementById('feedbackForm').style.display = 'none';
 
         if (rating >= HIGH_RATING) {
-          document.getElementById('redirectBox').style.display = 'block';
-          var fill    = document.getElementById('progressFill');
-          var note    = document.getElementById('redirectNote');
-          var elapsed = 0;
-          var total   = 3000;
-          var interval = setInterval(function() {
-            elapsed += 50;
-            fill.style.width = (elapsed / total * 100) + '%';
-            var remaining = Math.ceil((total - elapsed) / 1000);
-            note.textContent = 'Redirecting in ' + remaining + 's\u2026';
-            if (elapsed >= total) {
-              clearInterval(interval);
-              window.location.href = REVIEW_URL;
-            }
-          }, 50);
+          window.location.href = REVIEW_URL;
         } else {
           document.getElementById('thankyouBox').style.display = 'block';
         }
