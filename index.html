@@ -80,25 +80,6 @@
 
     .header { text-align: center; margin-bottom: 2.4rem; }
 
-    .logo-ring {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 68px; height: 68px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #fff8e8, #f5e6c3);
-      border: 2px solid var(--gold-lt);
-      font-size: 2rem;
-      margin-bottom: 1.2rem;
-      box-shadow: 0 4px 20px rgba(212,168,67,0.2);
-      animation: pulse 3s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 4px 20px rgba(212,168,67,0.2); }
-      50%       { box-shadow: 0 4px 30px rgba(212,168,67,0.45); }
-    }
-
     .header h1 {
       font-family: 'DM Serif Display', serif;
       font-size: 2rem;
@@ -163,7 +144,24 @@
       box-shadow: 0 0 0 3px rgba(212,168,67,0.14);
     }
 
+    input.error {
+      border-color: #ef4444;
+      background: #fff5f5;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+    }
+
     input::placeholder { color: #c2bdb5; font-size: 0.88rem; }
+
+    .phone-error {
+      display: none;
+      color: #dc2626;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-top: 0.4rem;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .phone-error.visible { display: block; }
 
     .star-label {
       display: block;
@@ -175,16 +173,19 @@
       margin-bottom: 0.7rem;
     }
 
+    /* Stars: evenly distributed across full width */
     .stars {
       display: flex;
       flex-direction: row-reverse;
-      justify-content: flex-end;
-      gap: 0.3rem;
+      justify-content: space-between;
+      width: 100%;
     }
 
     .stars input { display: none; }
 
     .stars label {
+      flex: 1;
+      text-align: center;
       font-size: 3rem;
       color: var(--star-off);
       cursor: pointer;
@@ -209,65 +210,10 @@
       color: var(--muted);
       margin-top: 0.5rem;
       min-height: 1.1em;
+      text-align: center;
     }
 
-    .btn {
-      width: 100%;
-      margin-top: 1.8rem;
-      padding: 1rem 1.5rem;
-      background: var(--ink);
-      color: #fff;
-      border: none;
-      border-radius: 0.7rem;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent);
-      pointer-events: none;
-    }
-
-    .btn:hover:not(:disabled) {
-      background: #2a2a4e;
-      box-shadow: 0 6px 24px rgba(26,26,46,0.22);
-      transform: translateY(-1px);
-    }
-
-    .btn:active:not(:disabled) { transform: scale(0.98); }
-
-    .btn:disabled {
-      background: #c5c0ba;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .btn .spinner {
-      display: none;
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    .btn.loading .spinner { display: inline-block; }
-    .btn.loading .btn-text { opacity: 0.7; }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
 
     .toast {
       display: none;
@@ -280,8 +226,6 @@
       text-align: center;
       animation: fadeIn 0.3s ease;
     }
-
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
 
     .toast.error {
       background: #fef2f2;
@@ -345,7 +289,6 @@
 <div class="card">
 
   <div class="header">
-    <!-- <div <div class="logo-ring">&#11088;</div> --> 
     <img src="https://raw.githubusercontent.com/mithusan-glitch/Logos/refs/heads/main/BF_Logo-no_background.png"
       alt="Logo"
       style="display:block;margin:0 auto 1.2rem;width:150px;height:150px;object-fit:contain;"/>
@@ -355,7 +298,7 @@
 
   <div class="rule"></div>
 
-  <form id="feedbackForm">
+  <div id="feedbackForm">
 
     <div class="field">
       <label class="label" for="name">Your Name <span class="opt">(optional)</span></label>
@@ -364,11 +307,12 @@
 
     <div class="field">
       <label class="label" for="phone">Phone Number</label>
-      <input type="tel" id="phone" placeholder="e.g. +61449844642" autocomplete="tel" inputmode="tel" required/>
+      <input type="tel" id="phone" placeholder="e.g. +61449844642" autocomplete="tel" inputmode="tel"/>
+      <div class="phone-error" id="phoneError">⚠ Please enter your phone number first.</div>
     </div>
 
     <div class="field">
-      <span class="star-label">Rate your experience</span>
+      <span class="star-label">Tap a star to rate</span>
       <div class="stars" id="starGroup">
         <input type="radio" id="s5" name="rating" value="5"/>
         <label for="s5" title="Excellent">&#9733;</label>
@@ -381,15 +325,10 @@
         <input type="radio" id="s1" name="rating" value="1"/>
         <label for="s1" title="Terrible">&#9733;</label>
       </div>
-      <div class="star-hint" id="starHint">Tap a star to rate</div>
+      <div class="star-hint" id="starHint"></div>
     </div>
 
-    <button type="submit" class="btn" id="submitBtn">
-      <span class="spinner"></span>
-      <span class="btn-text">Submit Feedback</span>
-    </button>
-
-  </form>
+  </div>
 
   <div class="toast" id="toastBox"></div>
 
@@ -410,83 +349,89 @@
 </div>
 
 <script>
-  // =============================================================
-  //  EDIT ONLY THESE TWO LINES
-  // =============================================================
   const BACKEND_URL = "https://script.google.com/macros/s/AKfycby_33TVfUOYh47pAdV0moB5qA4WtIWp9FmmGqSJyYLz0txGGf-ggu3E1clNdajxvhke/exec";
   const REVIEW_URL  = "https://search.google.com/local/writereview?placeid=ChIJ1y8qGACvEmsRWMnXAfAcjzs";
-  // =============================================================
-
-  const HIGH_RATING = 4; // 4 or 5 stars → redirect to review
+  const HIGH_RATING = 4;
 
   const HINTS = { 1:"Terrible", 2:"Poor", 3:"Average", 4:"Good", 5:"Excellent" };
+
+  // Update hint text on hover/change
   document.querySelectorAll('input[name="rating"]').forEach(function(r) {
     r.addEventListener('change', function() {
       document.getElementById('starHint').textContent = HINTS[r.value] || '';
     });
   });
 
-  document.getElementById('feedbackForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    clearToast();
+  // Intercept star clicks via label click — check phone first
+  document.querySelectorAll('.stars label').forEach(function(lbl) {
+    lbl.addEventListener('click', function(e) {
+      var phone = document.getElementById('phone').value.trim();
+      var phoneInput = document.getElementById('phone');
+      var phoneError = document.getElementById('phoneError');
 
-    var name     = document.getElementById('name').value.trim();
-    var phone    = document.getElementById('phone').value.trim();
-    var ratingEl = document.querySelector('input[name="rating"]:checked');
+      if (!phone) {
+        e.preventDefault(); // block the radio from being checked
+        phoneInput.classList.add('error');
+        phoneError.classList.add('visible');
+        phoneInput.focus();
+        // Shake effect
+        phoneInput.style.transition = 'transform 0.1s';
+        phoneInput.style.transform = 'translateX(6px)';
+        setTimeout(function() { phoneInput.style.transform = 'translateX(-6px)'; }, 100);
+        setTimeout(function() { phoneInput.style.transform = 'translateX(0)'; }, 200);
+        return;
+      }
 
-    if (!phone)    { showToast('Please enter your phone number.', 'error'); return; }
-    if (!ratingEl) { showToast('Please select a star rating.', 'error'); return; }
+      // Phone is present — clear error, let click through, then handle submission
+      phoneInput.classList.remove('error');
+      phoneError.classList.remove('visible');
 
-    var rating = parseInt(ratingEl.value);
-    var btn    = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.classList.add('loading');
-    btn.querySelector('.btn-text').textContent = 'Submitting...';
+      // Use a tiny delay to let the radio value update before reading it
+      setTimeout(function() {
+        var ratingEl = document.querySelector('input[name="rating"]:checked');
+        if (!ratingEl) return;
 
-    // Save to sheet in background — fire and forget
-    var formData = new FormData();
-    formData.append('name',   name);
-    formData.append('phone',  phone);
-    formData.append('rating', ratingEl.value);
-    fetch(BACKEND_URL, { method: 'POST', body: formData }).catch(function() {});
+        var rating = parseInt(ratingEl.value);
+        var name = document.getElementById('name').value.trim();
 
-    if (rating >= HIGH_RATING) {
-      // HIGH rating — show countdown, then redirect
-      document.getElementById('feedbackForm').style.display = 'none';
-      document.getElementById('redirectBox').style.display  = 'block';
-      var fill    = document.getElementById('progressFill');
-      var note    = document.getElementById('redirectNote');
-      var elapsed = 0;
-      var total   = 3000;
-      var interval = setInterval(function() {
-        elapsed += 50;
-        fill.style.width = (elapsed / total * 100) + '%';
-        var remaining = Math.ceil((total - elapsed) / 1000);
-        note.textContent = 'Redirecting in ' + remaining + 's...';
-        if (elapsed >= total) {
-          clearInterval(interval);
-          window.location.href = REVIEW_URL;
+        // Send to backend (fire and forget)
+        var formData = new FormData();
+        formData.append('name',   name);
+        formData.append('phone',  phone);
+        formData.append('rating', ratingEl.value);
+        fetch(BACKEND_URL, { method: 'POST', body: formData }).catch(function() {});
+
+        // Hide form
+        document.getElementById('feedbackForm').style.display = 'none';
+
+        if (rating >= HIGH_RATING) {
+          document.getElementById('redirectBox').style.display = 'block';
+          var fill    = document.getElementById('progressFill');
+          var note    = document.getElementById('redirectNote');
+          var elapsed = 0;
+          var total   = 3000;
+          var interval = setInterval(function() {
+            elapsed += 50;
+            fill.style.width = (elapsed / total * 100) + '%';
+            var remaining = Math.ceil((total - elapsed) / 1000);
+            note.textContent = 'Redirecting in ' + remaining + 's\u2026';
+            if (elapsed >= total) {
+              clearInterval(interval);
+              window.location.href = REVIEW_URL;
+            }
+          }, 50);
+        } else {
+          document.getElementById('thankyouBox').style.display = 'block';
         }
       }, 50);
-    } else {
-      // LOW rating — show thank you
-      document.getElementById('feedbackForm').style.display = 'none';
-      document.getElementById('thankyouBox').style.display  = 'block';
-    }
+    });
   });
 
-  function showToast(msg, type) {
-    var box = document.getElementById('toastBox');
-    box.textContent = msg;
-    box.className = 'toast ' + type;
-    box.style.display = 'block';
-  }
-
-  function clearToast() {
-    var box = document.getElementById('toastBox');
-    box.style.display = 'none';
-    box.textContent = '';
-  }
+  // Clear error state when user starts typing phone
+  document.getElementById('phone').addEventListener('input', function() {
+    this.classList.remove('error');
+    document.getElementById('phoneError').classList.remove('visible');
+  });
 </script>
 </body>
 </html>
