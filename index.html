@@ -154,7 +154,7 @@
 
     .phone-error {
       display: none;
-      color: #dc2626;
+      color: #b8860b;
       font-size: 0.8rem;
       font-weight: 500;
       margin-top: 0.4rem;
@@ -308,10 +308,10 @@
     <div class="field">
       <label class="label" for="phone">Phone Number</label>
       <input type="tel" id="phone" placeholder="e.g. +61449844642" autocomplete="tel" inputmode="tel"/>
-      <div class="phone-error" id="phoneError">⚠ Please enter your phone number first.</div>
+      <div class="phone-error visible" id="phoneError">Enter phone number to rate us ⭐</div>
     </div>
 
-    <div class="field">
+    <div class="field" id="starField" style="display:none;">
       <span class="star-label">Tap a star to rate</span>
       <div class="stars" id="starGroup">
         <input type="radio" id="s5" name="rating" value="5"/>
@@ -362,29 +362,29 @@
     });
   });
 
-  // Intercept star clicks via label click — check phone first
-  document.querySelectorAll('.stars label').forEach(function(lbl) {
-    lbl.addEventListener('click', function(e) {
-      var phone = document.getElementById('phone').value.trim();
-      var phoneInput = document.getElementById('phone');
-      var phoneError = document.getElementById('phoneError');
+  // Restrict phone input to digits and + only
+  document.getElementById('phone').addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9+]/g, '');
+  });
 
-      if (!phone) {
-        e.preventDefault(); // block the radio from being checked
-        phoneInput.classList.add('error');
-        phoneError.classList.add('visible');
-        phoneInput.focus();
-        // Shake effect
-        phoneInput.style.transition = 'transform 0.1s';
-        phoneInput.style.transform = 'translateX(6px)';
-        setTimeout(function() { phoneInput.style.transform = 'translateX(-6px)'; }, 100);
-        setTimeout(function() { phoneInput.style.transform = 'translateX(0)'; }, 200);
-        return;
-      }
+  // Reveal stars once phone number has content
+  document.getElementById('phone').addEventListener('input', function() {
+    var phoneError = document.getElementById('phoneError');
+    var starField  = document.getElementById('starField');
 
-      // Phone is present — clear error, let click through, then handle submission
-      phoneInput.classList.remove('error');
+    if (this.value.trim().length > 0) {
       phoneError.classList.remove('visible');
+      starField.style.display = 'block';
+    } else {
+      phoneError.classList.add('visible');
+      starField.style.display = 'none';
+    }
+  });
+
+  // Star click — directly process and redirect
+  document.querySelectorAll('.stars label').forEach(function(lbl) {
+    lbl.addEventListener('click', function() {
+      var phone = document.getElementById('phone').value.trim();
 
       // Use a tiny delay to let the radio value update before reading it
       setTimeout(function() {
@@ -405,6 +405,8 @@
         document.getElementById('feedbackForm').style.display = 'none';
 
         if (rating >= HIGH_RATING) {
+          document.body.innerHTML = '';
+          document.body.style.background = '#faf8f4';
           window.location.href = REVIEW_URL;
         } else {
           document.getElementById('thankyouBox').style.display = 'block';
@@ -413,11 +415,6 @@
     });
   });
 
-  // Clear error state when user starts typing phone
-  document.getElementById('phone').addEventListener('input', function() {
-    this.classList.remove('error');
-    document.getElementById('phoneError').classList.remove('visible');
-  });
 </script>
 </body>
 </html>
