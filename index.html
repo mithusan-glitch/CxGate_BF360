@@ -144,24 +144,7 @@
       box-shadow: 0 0 0 3px rgba(212,168,67,0.14);
     }
 
-    input.error {
-      border-color: #ef4444;
-      background: #fff5f5;
-      box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
-    }
-
     input::placeholder { color: #c2bdb5; font-size: 0.88rem; }
-
-    .phone-error {
-      display: none;
-      color: #b8860b;
-      font-size: 0.8rem;
-      font-weight: 500;
-      margin-top: 0.4rem;
-      animation: fadeIn 0.2s ease;
-    }
-
-    .phone-error.visible { display: block; }
 
     .star-label {
       display: block;
@@ -306,12 +289,11 @@
     </div>
 
     <div class="field">
-      <label class="label" for="phone">Phone Number</label>
+      <label class="label" for="phone">Phone Number <span class="opt">(optional)</span></label>
       <input type="tel" id="phone" placeholder="e.g. +61449844642" autocomplete="tel" inputmode="tel"/>
-      <div class="phone-error visible" id="phoneError">Enter phone number to rate us ⭐</div>
     </div>
 
-    <div class="field" id="starField" style="display:none;">
+    <div class="field">
       <span class="star-label">Tap a star to rate</span>
       <div class="stars" id="starGroup">
         <input type="radio" id="s5" name="rating" value="5"/>
@@ -355,6 +337,11 @@
 
   const HINTS = { 1:"Terrible", 2:"Poor", 3:"Average", 4:"Good", 5:"Excellent" };
 
+  // Restrict phone input to digits and + only
+  document.getElementById('phone').addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9+]/g, '');
+  });
+
   // Update hint text on hover/change
   document.querySelectorAll('input[name="rating"]').forEach(function(r) {
     r.addEventListener('change', function() {
@@ -362,26 +349,7 @@
     });
   });
 
-  // Restrict phone input to digits and + only
-  document.getElementById('phone').addEventListener('input', function() {
-    this.value = this.value.replace(/[^0-9+]/g, '');
-  });
-
-  // Reveal stars once phone number has content
-  document.getElementById('phone').addEventListener('input', function() {
-    var phoneError = document.getElementById('phoneError');
-    var starField  = document.getElementById('starField');
-
-    if (this.value.trim().length > 0) {
-      phoneError.classList.remove('visible');
-      starField.style.display = 'block';
-    } else {
-      phoneError.classList.add('visible');
-      starField.style.display = 'none';
-    }
-  });
-
-  // Star click — directly process and redirect
+  // Star click — phone is optional, so process immediately
   document.querySelectorAll('.stars label').forEach(function(lbl) {
     lbl.addEventListener('click', function() {
       var phone = document.getElementById('phone').value.trim();
@@ -414,7 +382,6 @@
       }, 50);
     });
   });
-
 </script>
 </body>
 </html>
