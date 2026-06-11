@@ -216,50 +216,6 @@
       border: 1px solid #fecaca;
     }
 
-    .thankyou {
-      display: none;
-      text-align: center;
-      padding: 1rem 0;
-      animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
-    }
-
-    .thankyou .big-icon { font-size: 3.5rem; margin-bottom: 1rem; }
-
-    .thankyou h2 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.8rem;
-      color: var(--ink);
-      margin-bottom: 0.6rem;
-    }
-
-    .thankyou p {
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.7;
-    }
-
-    .progress-bar {
-      height: 3px;
-      background: var(--border);
-      border-radius: 99px;
-      overflow: hidden;
-      margin-top: 1.5rem;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold), #e8b84b);
-      width: 0%;
-      border-radius: 99px;
-      transition: width 0.1s linear;
-    }
-
-    .redirect-note {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 0.6rem;
-    }
-
     @media (max-width: 500px) {
       .card { padding: 2.2rem 1.4rem 2.4rem; border-radius: 1rem; }
       .header h1 { font-size: 1.7rem; }
@@ -314,25 +270,12 @@
 
   <div class="toast" id="toastBox"></div>
 
-  <div class="thankyou" id="thankyouBox">
-    <div class="big-icon">&#128591;</div>
-    <h2>Thank you!</h2>
-    <p>We appreciate your honest feedback.<br/>Our team will be in touch soon.</p>
-  </div>
-
-  <div class="thankyou" id="redirectBox">
-    <div class="big-icon">&#127775;</div>
-    <h2>Wonderful!</h2>
-    <p>Thank you for the great rating.<br/>Taking you to share your review&hellip;</p>
-    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    <p class="redirect-note" id="redirectNote">Redirecting in 3s&hellip;</p>
-  </div>
-
 </div>
 
 <script>
   const BACKEND_URL = "https://script.google.com/macros/s/AKfycbzx6hn0KtbanFnOXia2e4GP_ieDFCWhsU1rb4MAdofzfsdE8T4IOQsFQ129DMarqi8/exec";
-  const REVIEW_URL  = "https://search.google.com/local/writereview?placeid=ChIJ1y8qGACvEmsRWMnXAfAcjzs";
+  const REVIEW_URL     = "https://search.google.com/local/writereview?placeid=ChIJ1y8qGACvEmsRWMnXAfAcjzs";
+  const LOW_RATING_URL = "https://forms.gle/gw2cdmh3Pr23qhTK6";
   const HIGH_RATING = 4;
 
   const HINTS = { 1:"Terrible", 2:"Poor", 3:"Average", 4:"Good", 5:"Excellent" };
@@ -372,12 +315,14 @@
         // Hide form
         document.getElementById('feedbackForm').style.display = 'none';
 
+        // Blank the page to avoid a flash of content during redirect
+        document.body.innerHTML = '';
+        document.body.style.background = '#faf8f4';
+
         if (rating >= HIGH_RATING) {
-          document.body.innerHTML = '';
-          document.body.style.background = '#faf8f4';
           window.location.href = REVIEW_URL;
         } else {
-          document.getElementById('thankyouBox').style.display = 'block';
+          window.location.href = LOW_RATING_URL;
         }
       }, 50);
     });
