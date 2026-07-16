@@ -196,6 +196,21 @@
       text-align: center;
     }
 
+    /* Simple spinner shown while submitting */
+    .spinner {
+      display: none;
+      width: 34px;
+      height: 34px;
+      margin: 1.6rem auto 0;
+      border: 3px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .stars.disabled label { pointer-events: none; opacity: 0.55; }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
 
     .toast {
@@ -268,6 +283,8 @@
 
   </div>
 
+  <div class="spinner" id="spinner"></div>
+
   <div class="toast" id="toastBox"></div>
 
 </div>
@@ -277,8 +294,16 @@
   const REVIEW_URL     = "https://search.google.com/local/writereview?placeid=ChIJ1y8qGACvEmsRWMnXAfAcjzs";
   const LOW_RATING_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHvFabyXBR2WOFQz7v0_g4PqkBdxEuks3JYYg5E7PQwNw-lg/viewform?usp=dialog";
   const HIGH_RATING = 4;
+  const SUBMIT_TIMEOUT_MS = 600; // keepalive already lets the POST finish in the background after we leave, so this is just a tiny safety cap
 
-  const HINTS = { 1:"Terrible", 2:"Poor", 3:"Average", 4:"Good", 5:"Excellent" };
+  // Message shown in the small text under the stars, in place of "Good"/"Excellent"/etc.
+  function hintFor(rating) {
+    return rating >= HIGH_RATING
+      ? "Thanks for the positive rating!"
+      : "Sorry for your experience";
+  }
+
+  let submitting = false; // guard against double taps
 
   // Restrict phone input to digits and + only
   document.getElementById('phone').addEventListener('input', function() {
@@ -288,29 +313,60 @@
   // Update hint text on hover/change
   document.querySelectorAll('input[name="rating"]').forEach(function(r) {
     r.addEventListener('change', function() {
-      document.getElementById('starHint').textContent = HINTS[r.value] || '';
+      document.getElementById('starHint').textContent = hintFor(parseInt(r.value, 10));
     });
   });
 
-  // Star click — phone is optional, so process immediately
+  function timeoutPromise(ms) {
+    return new Promise(function(resolve) {
+      setTimeout(resolve, ms);
+    });
+  }
+
+  function redirectFor(rating) {
+    if (rating >= HIGH_RATING) {
+      window.location.href = REVIEW_URL;
+    } else {
+      window.location.href = LOW_RATING_URL;
+    }
+  }
+
+  // Star click — submit to backend FIRST, then redirect
   document.querySelectorAll('.stars label').forEach(function(lbl) {
     lbl.addEventListener('click', function() {
-      var phone = document.getElementById('phone').value.trim();
+      if (submitting) return;
 
-      // Use a tiny delay to let the radio value update before reading it
-      setTimeout(function() {
+      // Tiny tick to let the radio's checked value register before reading it
+      setTimeout(async function() {
         var ratingEl = document.querySelector('input[name="rating"]:checked');
         if (!ratingEl) return;
 
-        var rating = parseInt(ratingEl.value);
-        var name = document.getElementById('name').value.trim();
+        submitting = true;
 
-        // Send to backend (fire and forget)
+        var rating = parseInt(ratingEl.value, 10);
+        var name = document.getElementById('name').value.trim();
+        var phone = document.getElementById('phone').value.trim();
+
+        // Lock the UI while we submit
+        document.getElementById('starGroup').classList.add('disabled');
+        document.getElementById('spinner').style.display = 'block';
+
         var formData = new FormData();
         formData.append('name',   name);
         formData.append('phone',  phone);
         formData.append('rating', ratingEl.value);
-        fetch(BACKEND_URL, { method: 'POST', body: formData }).catch(function() {});
+
+        var submitPromise = fetch(BACKEND_URL, {
+          method: 'POST',
+          body: formData,
+          keepalive: true // lets the request finish sending even if we navigate away right after
+        }).catch(function() {
+          // Swallow network/CORS errors — we still want to redirect either way,
+          // but keepalive above gives the request its best chance to land first.
+        });
+
+        // Wait for the submit to finish, but don't block the user longer than SUBMIT_TIMEOUT_MS
+        await Promise.race([submitPromise, timeoutPromise(SUBMIT_TIMEOUT_MS)]);
 
         // Hide form
         document.getElementById('feedbackForm').style.display = 'none';
@@ -319,12 +375,8 @@
         document.body.innerHTML = '';
         document.body.style.background = '#faf8f4';
 
-        if (rating >= HIGH_RATING) {
-          window.location.href = REVIEW_URL;
-        } else {
-          window.location.href = LOW_RATING_URL;
-        }
-      }, 50);
+        redirectFor(rating);
+      }, 0);
     });
   });
 </script>
